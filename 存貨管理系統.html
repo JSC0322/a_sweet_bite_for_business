@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存貨管理系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-container {
+            width: 45%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0 10px 0;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .inventory-container {
+            width: 45%;
+        }
+        .inventory-category {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>存貨管理系統</h1>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>進貨</h2>
+            <form id="incomingForm">
+                <label for="category">商品類別：</label>
+                <select id="category">
+                    <option value="冰棒類">冰棒類</option>
+                    <option value="冰淇淋杯類">冰淇淋杯類</option>
+                    <option value="冰淇淋蛋糕類">冰淇淋蛋糕類</option>
+                </select><br>
+                <label for="incomingName">商品名稱：</label>
+                <input type="text" id="incomingName" required><br>
+                <label for="incomingQuantity">數量：</label>
+                <input type="number" id="incomingQuantity" required><br>
+                <button type="button" onclick="addIncoming()">新增進貨</button>
+            </form>
+
+            <h2>出貨</h2>
+            <form id="outgoingForm">
+                <label for="categoryOutgoing">商品類別：</label>
+                <select id="categoryOutgoing">
+                    <option value="冰棒類">冰棒類</option>
+                    <option value="冰淇淋杯類">冰淇淋杯類</option>
+                    <option value="冰淇淋蛋糕類">冰淇淋蛋糕類</option>
+                </select><br>
+                <label for="outgoingName">商品名稱：</label>
+                <input type="text" id="outgoingName" required><br>
+                <label for="outgoingQuantity">數量：</label>
+                <input type="number" id="outgoingQuantity" required><br>
+                <button type="button" onclick="addOutgoing()">新增出貨</button>
+            </form>
+        </div>
+
+        <div class="inventory-container">
+            <div class="inventory-category">
+                <h2>冰棒類</h2>
+                <table id="inventoryTableIcePops">
+                    <thead>
+                        <tr>
+                            <th>商品名稱</th>
+                            <th>數量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 冰棒類存貨資料將顯示在這裡 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="inventory-category">
+                <h2>冰淇淋杯類</h2>
+                <table id="inventoryTableIceCreamCups">
+                    <thead>
+                        <tr>
+                            <th>商品名稱</th>
+                            <th>數量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 冰淇淋杯類存貨資料將顯示在這裡 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="inventory-category">
+                <h2>冰淇淋蛋糕類</h2>
+                <table id="inventoryTableIceCreamCakes">
+                    <thead>
+                        <tr>
+                            <th>商品名稱</th>
+                            <th>數量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 冰淇淋蛋糕類存貨資料將顯示在這裡 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || {
+            '冰棒類': {},
+            '冰淇淋杯類': {},
+            '冰淇淋蛋糕類': {}
+        };
+
+        function addIncoming() {
+            const category = document.getElementById('category').value;
+            const name = document.getElementById('incomingName').value;
+            const quantity = parseInt(document.getElementById('incomingQuantity').value);
+            
+            if (name && quantity > 0) {
+                if (inventory[category][name]) {
+                    inventory[category][name] += quantity;
+                } else {
+                    inventory[category][name] = quantity;
+                }
+                updateInventoryTable();
+                saveInventory();
+            }
+        }
+
+        function addOutgoing() {
+            const category = document.getElementById('categoryOutgoing').value;
+            const name = document.getElementById('outgoingName').value;
+            const quantity = parseInt(document.getElementById('outgoingQuantity').value);
+            
+            if (name && quantity > 0) {
+                if (inventory[category][name]) {
+                    if (inventory[category][name] >= quantity) {
+                        inventory[category][name] -= quantity;
+                        if (inventory[category][name] === 0) {
+                            delete inventory[category][name];
+                        }
+                        
+                        if (category !== '冰淇淋蛋糕類' && inventory[category][name] < 5) {
+                            alert(`警告：${name}的存貨數量低於5`);
+                        }
+
+                        updateInventoryTable();
+                        saveInventory();
+                    } else {
+                        alert('存貨不足，無法完成出貨');
+                    }
+                } else {
+                    alert('該商品尚未進貨');
+                }
+            }
+        }
+
+        function updateInventoryTable() {
+            const tables = {
+                '冰棒類': document.querySelector('#inventoryTableIcePops tbody'),
+                '冰淇淋杯類': document.querySelector('#inventoryTableIceCreamCups tbody'),
+                '冰淇淋蛋糕類': document.querySelector('#inventoryTableIceCreamCakes tbody')
+            };
+            
+            for (const category in tables) {
+                const tbody = tables[category];
+                tbody.innerHTML = '';
+                for (const name in inventory[category]) {
+                    const row = `<tr>
+                                    <td>${name}</td>
+                                    <td>${inventory[category][name]}</td>
+                                </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                }
+            }
+        }
+
+        function saveInventory() {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        }
+
+        window.onload = function() {
+            updateInventoryTable();
+        }
+    </script>
+
+</body>
+</html>
